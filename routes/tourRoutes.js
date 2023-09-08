@@ -17,12 +17,13 @@ const router = express.Router();
 //   console.log(`Tour id is: ${val}`);
 // });
 
-router.param('id', tourController.checkID);
+// router.param('id', tourController.checkID);
 
 router
   .route('/')
   .get(tourController.getAllTours)
   .post(tourController.createTour);
+// .post(tourController.checkBody, tourController.createTour);
 
 router
   .route('/:id')

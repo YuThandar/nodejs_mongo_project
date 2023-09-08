@@ -20,9 +20,14 @@ const app = express();
 
 // 1) MIDDLEWARE
 
-app.use(morgan('dev')); // can use 'tiny'
+console.log('Console', process.env.NODE_ENV);
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev')); // can use 'tiny'
+}
 
 app.use(express.json()); // use the middleware
+
+app.use(express.static(`${__dirname}/public`)); // give static folder access
 
 app.use((req, res, next) => {
   console.log('Hello from the middleware 👋');
