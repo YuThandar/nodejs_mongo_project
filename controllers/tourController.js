@@ -29,7 +29,53 @@ const Tour = require('../models/tourModel');
 
 exports.getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    // BUILD QUERY
+    // 1A) Filtering
+    const queryObj = { ...req.query }; //  creates a new object & to make a shallow copy of the 'req.query' object
+    const excludeFields = ['page', 'sort', 'limit', 'fields']; // contains the names of certain query parameters that you want to exclude or remove from the 'queryObj'
+    excludeFields.forEach((el) => delete queryObj[el]);
+
+    // the queryObj object will contain all query parameters from req.query except for those specified in the excludeFields array. This can be useful when you want to filter out specific query parameters before further processing the remaining ones. For example, you might want to remove pagination-related parameters like 'page' and 'limit' before using the remaining parameters to filter database queries or generate responses.
+
+    // console.log('REQ QUERY', req.query, queryObj);
+
+    // 1B) Advanced Filter
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    console.log(JSON.parse(queryStr));
+
+    // { difficulty: 'easy', duration: { $gte: '5'} } (This is mongo schema)
+    // { difficulty: 'easy', duration: { gte: '5'} } (We need to change mongo schema, we need to inset '$' sign to operator $gte)
+
+    let query = Tour.find(JSON.parse(queryStr));
+    // console.log('Query', query);
+
+    // const query = await Tour.find({
+    //   duration: 5,
+    //   difficulty: 'easy',
+    // });
+
+    // 2) Sorting
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      console.log(sortBy);
+
+      // query = query.sort(sortBy);
+      // sort('price ratingsAverage)
+    } else {
+      // query = query.sort('-createdAt');
+    }
+
+    // EXECUTE QUERY
+    const tours = await query;
+
+    // const query = await Tour.find()
+    //   .where('duration')
+    //   .equals(5)
+    //   .where('difficulty')
+    //   .equals('easy');
+
+    // SEND RESPONSE
     res.status(200).json({
       status: 'success',
       results: tours.length,
@@ -59,6 +105,7 @@ exports.getAllTours = async (req, res) => {
 exports.getTour = async (req, res) => {
   try {
     const tour = await Tour.findById(req.params.id);
+    // Tour.findOne({_id: req.params.id})
     res.status(200).json({
       status: 'success',
       data: {
@@ -135,7 +182,26 @@ exports.createTour = async (req, res) => {
   // );
 };
 
-exports.updateTour = (req, res) => {
+exports.updateTour = async (req, res) => {
+  try {
+    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err,
+    });
+  }
+
   // patch method only partially object update (not the whole object)
   // if (req.params.id * 1 > tours.length) {
   //   return res.status(404).json({
@@ -144,18 +210,31 @@ exports.updateTour = (req, res) => {
   //   });
   // }
 
-  res.status(200).json({
-    status: 'success to update',
-    data: {
-      tour: '<Updated tour...>',
-    },
-  });
+  // res.status(200).json({
+  //   status: 'success to update',
+  //   data: {
+  //     tour: '<Updated tour...>',
+  //   },
+  // });
 };
 
-exports.deleteTour = (req, res) => {
-  res.status(204).json({
-    // 204 is no content
-    status: 'success to delete',
-    data: null,
-  });
+exports.deleteTour = async (req, res) => {
+  try {
+    await Tour.findByIdAndDelete(req.params.id);
+    res.status(204).json({
+      // 204 is no content
+      status: 'success to delete',
+      data: null,
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'fail',
+      message: err,
+    });
+  }
+  // res.status(204).json({
+  //   // 204 is no content
+  //   status: 'success to delete',
+  //   data: null,
+  // });
 };
