@@ -28,6 +28,7 @@ const tours = JSON.parse(
 );
 
 // IMPORT DATA INTO DB
+//run this command=> node .\dev-data\data\import-dev-data.js --import
 const importData = async () => {
   try {
     await Tour.create(tours);
@@ -39,7 +40,7 @@ const importData = async () => {
 };
 
 // DELETE ALL DATA FROM DB
-
+//run this command=> node .\dev-data\data\import-dev-data.js --delete
 const deleteData = async () => {
   try {
     await Tour.deleteMany();
