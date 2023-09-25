@@ -1,4 +1,5 @@
 const express = require('express');
+const authController = require('./../controllers/authController');
 const {
   getAllUsers,
   createUser,
@@ -8,6 +9,10 @@ const {
 } = require('../controllers/userController');
 
 const router = express.Router();
+
+router.post('/signup', authController.signup); // signup route only post method because only create user account (can't update, get)
+
+router.post('/login', authController.login);
 
 router.route('/').get(getAllUsers).post(createUser);
 
